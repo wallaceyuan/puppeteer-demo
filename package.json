@@ -9,6 +9,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "async": "^2.6.1",
+    "cheerio": "^1.0.0-rc.2",
+    "co-mysql": "^1.0.0",
+    "mysql": "^2.16.0",
     "ora": "^3.0.0",
     "puppeteer": "^1.8.0"
   }

@@ -2,9 +2,12 @@
  * Created by yuan on 2018/9/12.
  */
 const puppeteer = require('puppeteer');
-const {CREDS} = require('./creds');
+var conf = require('./config/config');
+var pool = conf.pool;
+var save = require('./save')
 
-(async () => {
+
+const crawler = async() => {
     const pathToExtension = require('path').join(__dirname, 'chrome-mac/Chromium.app/Contents/MacOS/Chromium');
     const browser = await puppeteer.launch({
         headless: false,
@@ -13,32 +16,95 @@ const {CREDS} = require('./creds');
     const page = await browser.newPage();
 
     await page.setViewport({width: 1280, height: 800});
-    await page.goto('https://weibo.com');
+    await page.goto('https://weibo.com/rmrb');
     await page.waitForNavigation();
 
-    try{
-        //登录
-        await page.type('#loginname',CREDS.username);
-        await page.type('input[name=password]',CREDS.password);
+    await page.addScriptTag({url: 'https://code.jquery.com/jquery-3.2.1.min.js'})
 
-        await page.click('.login_btn a');
+    const LIST_SELECTOR = 'div[action-type=feed_list_item]'
 
-        //页面登录成功后，需要保证redirect 跳转到请求的页面
-        await page.waitForNavigation();
+    const user = await page.evaluate((infoDiv)=> {
+        return Array.prototype.slice.apply(document.querySelectorAll(infoDiv))
+            .map($userListItem => {
+                var weiboDiv = $($userListItem)
+                var webUrl = 'http://weibo.com'
 
-    }catch (e){
-        console.log('error',e)
+                var weiboInfo = {
+                    "tbinfo":  weiboDiv.attr("tbinfo"),
+                    "mid": weiboDiv.attr("mid"),
+                    "isforward":weiboDiv.attr("isforward"),
+                    "minfo":weiboDiv.attr("minfo"),
+                    "omid":weiboDiv.attr("omid"),
+                    "text":weiboDiv.find(".WB_detail>.WB_text").text().trim(),
+                    'link':webUrl.concat(weiboDiv.find(".WB_detail>.WB_from a").eq(0).attr("href")) ,
+                    "sendAt":new Date(parseInt(weiboDiv.find(".WB_detail>.WB_from a").eq(0).attr("date")))
+                };
+
+                if(weiboInfo.isforward){
+                    var forward = weiboDiv.find("div[node-type=feed_list_forwardContent]");
+
+                    if(forward.length > 0){
+                        var forwardUser = forward.find("a[node-type=feed_list_originNick]");
+
+                        var userCard = forwardUser.attr("usercard");
+
+                        weiboInfo.forward = {
+                            name:forwardUser.attr("nick-name"),
+                            id:userCard ? userCard.split("=")[1] : "error",
+                            text:forward.find(".WB_text").text().trim(),
+                            "sendAt":new Date(parseInt(forward.find(".WB_from a").eq(0).attr("date")))
+                        };
+                    }
+                }
+                return weiboInfo
+            })
+    }, LIST_SELECTOR)
+
+    pool.getConnection(function(err, connection) {
+        save.kNewscom({"connection":connection,"res":user},function () {
+            console.log('insert success')
+        })
+    })
+
+    console.log('useruser',user)
+
+}
+
+
+const getWeibo = async(feedSelector)=>{
+    var weiboDiv = $(feedSelector);
+    var webUrl = 'http://weibo.com'
+
+    return {}
+
+    var weiboInfo = {
+        "tbinfo":  weiboDiv.attr("tbinfo"),
+        "mid": weiboDiv.attr("mid"),
+        "isforward":weiboDiv.attr("isforward"),
+        "minfo":weiboDiv.attr("minfo"),
+        "omid":weiboDiv.attr("omid"),
+        "text":weiboDiv.find(".WB_detail>.WB_text").text().trim(),
+        'link':webUrl.concat(weiboDiv.find(".WB_detail>.WB_from a").eq(0).attr("href")) ,
+        "sendAt":new Date(parseInt(weiboDiv.find(".WB_detail>.WB_from a").eq(0).attr("date")))
+    };
+
+    if(weiboInfo.isforward){
+        var forward = weiboDiv.find("div[node-type=feed_list_forwardContent]");
+
+        if(forward.length > 0){
+            var forwardUser = forward.find("a[node-type=feed_list_originNick]");
+
+            var userCard = forwardUser.attr("usercard");
+
+            weiboInfo.forward = {
+                name:forwardUser.attr("nick-name"),
+                id:userCard ? userCard.split("=")[1] : "error",
+                text:forward.find(".WB_text").text().trim(),
+                "sendAt":new Date(parseInt(forward.find(".WB_from a").eq(0).attr("date")))
+            };
+        }
     }
+    return weiboInfo;
+}
 
-    return await page.content();
-
-
-
-    //await browser.close();
-    //return result;
-
-    /*    await page.click('#Pl_Official_MyProfileFeed__28 > div > div:nth-child(2) > div.WB_feed_detail.clearfix > div.WB_detail > div.WB_from.S_txt2 > a:nth-child(1)')
-     const result = await page.evaluate(() => {
-     // return something
-     })*/
-})();
+crawler()
