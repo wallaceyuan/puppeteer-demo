@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 
 (async () => {
-    const pathToExtension = require('path').join(__dirname, 'chrome-mac/Chromium.app/Contents/MacOS/Chromium');
+    const pathToExtension = require('path').join(__dirname, '../chrome-mac/Chromium.app/Contents/MacOS/Chromium');
     const browser = await puppeteer.launch({
         headless: false,
         executablePath: pathToExtension

@@ -1,6 +1,6 @@
 var mysql = require('mysql');
 var debug = require('debug')('crawl:save');
-var conf = require('./config/config')
+var conf = require('./../config/config')
 var pool = conf.pool
 
 var async = require('async');
@@ -82,7 +82,7 @@ exports.kNewscom = function(list,callback){
                 //console.log('has news')
                 cb();
             }else{
-                connection.query('insert into kweibo(tbinfo,mid,isforward,minfo,omid,text,sendAt) values(?,?,?,?,?,?,?)',data,function(err,result){
+                connection.query('insert into kweibo(tbinfo,mid,isforward,minfo,omid,text,sendAt,cid,clink,fname,fid,ftext,fsendAt) values(?,?,?,?,?,?,?,?,?,?,?,?,?)',data,function(err,result){
                     if(err){
                         console.log('kNewscom',err)
                     }
