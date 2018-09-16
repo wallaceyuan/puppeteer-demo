@@ -4,15 +4,16 @@
 const puppeteer = require('puppeteer');
 const CREDS = require('./creds');
 
-(async () => {
-    const pathToExtension = require('path').join(__dirname, '../chrome-mac/Chromium.app/Contents/MacOS/Chromium');
+
+const login = async (page) => {
+    /*const pathToExtension = require('path').join(__dirname, '../chrome-mac/Chromium.app/Contents/MacOS/Chromium');
     const browser = await puppeteer.launch({
         headless: false,
         executablePath: pathToExtension
     });
     const page = await browser.newPage();
 
-    await page.setViewport({width: 1280, height: 800});
+    await page.setViewport({width: 1280, height: 800});*/
     await page.goto('https://weibo.com');
     await page.waitForNavigation();
 
@@ -31,14 +32,6 @@ const CREDS = require('./creds');
     }
 
     return await page.content();
+}
 
-
-
-    //await browser.close();
-    //return result;
-
-    /*    await page.click('#Pl_Official_MyProfileFeed__28 > div > div:nth-child(2) > div.WB_feed_detail.clearfix > div.WB_detail > div.WB_from.S_txt2 > a:nth-child(1)')
-     const result = await page.evaluate(() => {
-     // return something
-     })*/
-})();
+module.exports = login
