@@ -67,14 +67,14 @@ exports.kNewscom = function(list,callback){
     var connection = list.connection
     async.forEach(list.res,function(item,cb){
         debug('save news',JSON.stringify(item));
-        var data = [item.tbinfo,item.mid,item.isforward,item.minfo,item.omid,item.text,item.sendAt,item.cid,item.clink]
+        var data = [item.tbinfo,item.mid,item.isforward,item.minfo,item.omid,item.text,new Date(parseInt(item.sendAt)),item.cid,item.clink]
         if(item.forward){
             var fo = item.forward
-            data = data.concat([fo.name,fo.id,fo.text,fo.sendAt])
+            data = data.concat([fo.name,fo.id,fo.text,new Date(parseInt(fo.sendAt))])
         }else{
             data = data.concat(['','','',new Date()])
         }
-        connection.query('select * from kweibo where mid = ?',[item.mid],function (err,res) {
+        connection.query('select * from weibo where mid = ?',[item.mid],function (err,res) {
             if(err){
                 console.log(err)
             }

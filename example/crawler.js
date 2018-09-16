@@ -6,7 +6,7 @@ var conf = require('./../config/config');
 var pool = conf.pool;
 var save = require('./save')
 
-;(async() => {
+    ;(async() => {
     const pathToExtension = require('path').join(__dirname, '../chrome-mac/Chromium.app/Contents/MacOS/Chromium');
     const browser = await puppeteer.launch({
         headless: false,
@@ -19,14 +19,26 @@ var save = require('./save')
     await page.waitForNavigation();
 
     await page.addScriptTag({url: 'https://code.jquery.com/jquery-3.2.1.min.js'})
-    
+
     const user = await getWeibo(page)
 
-    pool.getConnection(function(err, connection) {
+    console.log(user);
+
+    page.on('response', async(res)=> {
+        const url = res.url()
+        if(url.indexOf('small') > -1){
+            let text = await res.text()
+            var html = JSON.parse(text).data.html
+            console.log(html);
+            //console.log($(html).find('.WB_text').text()/*$(text).find('.WB_text').text()*/);
+        }
+    })
+
+    /*pool.getConnection(function(err, connection) {
         save.kNewscom({"connection":connection,"res":user},function () {
             console.log('insert success')
         })
-    })
+    })*/
 
 
 })()
@@ -65,6 +77,10 @@ async function getWeibo(page){
                         };
                     }
                 }
+
+                $('.WB_handle span[node-type=comment_btn_text]').each(async(i,v)=>{
+                    $(v).trigger('click')
+                })
                 return weiboInfo
             })
     }, LIST_SELECTOR)
