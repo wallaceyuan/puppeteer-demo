@@ -1,7 +1,6 @@
 var mysql = require('mysql');
 var debug = require('debug')('crawl:save');
 var conf = require('./../config/config')
-var pool = conf.pool
 var async = require('async');
 
 exports.content = function(list,callback){

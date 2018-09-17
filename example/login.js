@@ -6,32 +6,24 @@ const CREDS = require('./creds');
 
 
 const login = async (page) => {
-    /*const pathToExtension = require('path').join(__dirname, '../chrome-mac/Chromium.app/Contents/MacOS/Chromium');
-    const browser = await puppeteer.launch({
-        headless: false,
-        executablePath: pathToExtension
-    });
-    const page = await browser.newPage();
-
-    await page.setViewport({width: 1280, height: 800});*/
-    await page.goto('https://weibo.com');
-    await page.waitForNavigation();
-
+    await page.click('.gn_login_list li a[node-type="loginBtn"]');
+    await page.waitFor(2000)
     try{
-        //登录
-        await page.type('#loginname',CREDS.username);
-        await page.type('input[name=password]',CREDS.password);
+        await page.type('input[name=username]',CREDS.username,{delay:30});
+        await page.type('input[name=password]',CREDS.password,{delay:30});
+        await page.click('.item_btn a');
 
-        await page.click('.login_btn a');
+        await page.waitForNavigation();
 
         //页面登录成功后，需要保证redirect 跳转到请求的页面
+        await page.click('li[node-type="tab_all"]')
+
         await page.waitForNavigation();
 
     }catch (e){
         console.log('error',e)
     }
-
-    return await page.content();
+    //return await page.content();
 }
 
 module.exports = login

@@ -17,17 +17,18 @@ var login = require('./login')
 
     await page.setViewport({width: 1280, height: 800});
 
-    await login(page)
-
     await page.goto('https://weibo.com/rmrb');
     await page.waitForNavigation();
 
+    await login(page)
+
     await page.addScriptTag({url: 'https://code.jquery.com/jquery-3.2.1.min.js'})
 
-    const user = await getWeibo(page)
+    const content = await getWeibo(page)
 
     page.on('response', async(res)=> {
         const url = res.url()
+        console.log(url)
         if (url.indexOf('small') > -1) {
             let text = await res.text()
             var mid = getQueryVariable(res.url(), 'mid');
@@ -37,7 +38,7 @@ var login = require('./login')
             if (matchRes && matchRes.length) {
                 let comment = []
                 matchRes.map((v)=> {
-                    comment.push({mid, content: v.split('：')[1]})
+                    comment.push({mid, content: JSON.stringify(v.split('：')[1])})
                 })
                 pool.getConnection(function (err, connection) {
                     save.comment({"connection": connection, "res": comment}, function () {
@@ -49,15 +50,21 @@ var login = require('./login')
     })
 
     pool.getConnection(function (err, connection) {
-        save.content({"connection": connection, "res": user}, function () {
+        save.content({"connection": connection, "res": content}, function () {
             console.log('insert success')
         })
     })
+
+    //await browser.close();
+
 })()
 
 async function getWeibo(page) {
     const LIST_SELECTOR = 'div[action-type=feed_list_item]'
     return await page.evaluate((infoDiv)=> {
+        $('.WB_handle span[node-type=comment_btn_text]').each(async(i, v)=> {
+            $(v).trigger('click')
+        })
         return Array.prototype.slice.apply(document.querySelectorAll(infoDiv))
             .map($userListItem => {
                 var weiboDiv = $($userListItem)
@@ -89,10 +96,6 @@ async function getWeibo(page) {
                         };
                     }
                 }
-
-                $('.WB_handle span[node-type=comment_btn_text]').each(async(i, v)=> {
-                    $(v).trigger('click')
-                })
                 return weiboInfo
             })
     }, LIST_SELECTOR)

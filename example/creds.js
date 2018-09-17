@@ -3,6 +3,6 @@
  */
 
 module.exports = {
-    username:'1272864289@qq.com',
-    password:'wallace_741130'
+    username:'',
+    password:''
 }

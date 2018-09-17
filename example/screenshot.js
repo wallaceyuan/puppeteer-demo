@@ -7,8 +7,9 @@ const puppeteer = require('puppeteer');
         executablePath: pathToExtension
     });
     const page = await browser.newPage();
-    await page.goto('https://www.baidu.com');
     await page.setViewport({width: 1000, height: 500});
-    await page.screenshot({path: 'example.png'});
+    await page.goto('https://weibo.com/rmrb');
+    await page.waitForNavigation();
+    await page.screenshot({path: 'rmrb.png'});
     await browser.close();
 })();
